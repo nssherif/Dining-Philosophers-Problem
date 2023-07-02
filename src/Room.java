@@ -1,13 +1,11 @@
 import java.util.Arrays;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.lang.management.ThreadInfo;
 import java.util.*;
 
 public class Room {
     static int timer = 0;
-    private static Table[] rooomTables = new Table[1];
-    private static Table spareTable;
+    private static List<Table> rooomTables = new ArrayList<Table>();
     private static List<Character> movedPhilosophers = new ArrayList<Character>();
 
     // Helper method to find the Thread object based on the thread ID
@@ -51,10 +49,15 @@ public class Room {
     private static void movePhilosopher(Philosopher philosopher) {
         if (philosopher!=null) {
             movedPhilosophers.add(philosopher.getPhilospherName());
+            System.out.println("Moved philosopher name = "+ philosopher.getPhilospherName());
             if (movedPhilosophers.size() == 5) {
-                char[] philosopherNames = movedPhilosophers.toString().toCharArray();
-                spareTable = new Table(philosopherNames, "Table6");
-                spareTable.start();
+                char[] philosopherNames = new char[5];
+                for (int i =0; i<philosopherNames.length; i++) {
+                    philosopherNames[i] = movedPhilosophers.get(i);
+                }
+                rooomTables.add(new Table(philosopherNames, "Table6"));
+                rooomTables.get(rooomTables.size() - 1).start();
+                System.out.println("--------------------------------------------------------------------------------");
             }
         }
     }
@@ -66,23 +69,31 @@ public class Room {
 
         if (threadIds != null) {
             Thread thread = findThreadById(threadIds[threadIds.length-1]); //get thread of the last philosopher that caused the deadlock
-            System.out.println("threadID"+ thread.getId());
             if (thread != null) {
                 Philosopher philosopher = findPhilosopherByThread(thread);
                 movePhilosopher(philosopher);
                 if (philosopher != null) {
-                    System.out.println("Philosopher that got stick is = " + philosopher.getName());
+                    System.out.println("Last Philosopher that got stuck is = " + philosopher.getPhilospherName());
                 }
                 removePhilosopherFromTable(philosopher);
+                String tableName = philosopher.getTableName();
+                String indexStr = tableName.substring(tableName.length() - 1);
+                int index = Integer.parseInt(indexStr);
+                if (index == 6) { 
+                    System.out.println("6th table is at a deadlock and it took the following seconds to get stuck = " + timer);
+                    System.exit(0);
+                }
+                System.out.println(index);
+                for (Table table: rooomTables) {
+                    table.start();
+                }
+                
             }
-            //System.exit(0);
-        } else {
-            //System.out.println("No deadlock detected.");
         }
     }
 
     public static void main(String[] args) {
-        try {
+        
 
             char[] alphabet = new char[26];
 
@@ -91,29 +102,26 @@ public class Room {
                 alphabet[i] = (char) ('A' + i);
             }
 
-            Table[] tables = new Table[1];
+            Table[] tables = new Table[5];
 
             for (int i=0; i<tables.length; i++) {
                 int startIndex = i*5;
                 char[] philosopherNames = Arrays.copyOfRange(alphabet, startIndex, startIndex+5);
                 tables[i] = new Table(philosopherNames, "Table" + Integer.toString(i));
-                rooomTables[i] = tables[i];
-                rooomTables[i].start();
+                rooomTables.add(tables[i]);
+                rooomTables.get(i).start();
             }
 
             // Check for deadlock after each second
             while (true) {
-                Thread.sleep(1000);
-                timer = timer+1;
-                System.out.println("Seconds: " + timer);
-                checkDeadlock();
+                try {
+                    Thread.sleep(1000);
+                    timer = timer+1;
+                    System.out.println("Seconds: " + timer);
+                    checkDeadlock();
+                } catch (Exception e) {
+                    // handle exception
+                }   
             }
-
-            
-        } catch (Exception e) {
-            System.out.println("Exiting error from Room class = "+ e);
-            System.out.println("Line number = "+ e.getStackTrace()[0].getLineNumber());
-        }
-        
     }
 }

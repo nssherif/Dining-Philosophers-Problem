@@ -8,7 +8,6 @@ public class Philosopher extends Thread {
     private boolean deadlocked = false;
     private String tableName;
     private long threadId;
-    private Boolean isExitRequested = true;
 
     Philosopher(Object left, Object right, char name, String tableName) {
         this.leftFork = left;
@@ -23,8 +22,7 @@ public class Philosopher extends Thread {
         Random random = new Random();
         switch(action) {
             case "thinking":
-                // sleepTimer = random.nextInt(11); // Think for a random number between 0 (inclusive) and 11 (exclusive);
-                sleepTimer = 3;
+                sleepTimer = 3; // Think for a random number between 0 (inclusive) and 10;
                 outputMsg = "Thinking";
                 break;
             case "pickUpLeftFork":
@@ -48,9 +46,8 @@ public class Philosopher extends Thread {
                 outputMsg = "Default case activated";
             }
 
-        System.out.println(this.tableName + " ----- Philospher with name = " + this.name + " is understaking the following action -> " + outputMsg);
+        System.out.println(this.tableName + " ----- Philospher with name = " + this.name + " is undertaking the following action -> " + outputMsg);
         Thread.sleep(((int) (sleepTimer * 1000)));
-        return;
     }
 
     public boolean isDeadlocked() {
@@ -84,13 +81,10 @@ public class Philosopher extends Thread {
     @Override
     public void run() {
         try {
-            while (!interrupted()) {
+            while (true) {
                 doAction("thinking"); // thinking
                 synchronized (this.leftFork) {
                     doAction("pickUpLeftFork");
-                    while(this.isExitRequested) {
-                        this.leftFork.wait();
-                    }
                     this.deadlocked = true;
                     synchronized (this.rightFork) {
                         this.deadlocked = false;

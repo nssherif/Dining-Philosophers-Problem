@@ -15,21 +15,9 @@ public class Table {
 
     public void removePhilosopher(Philosopher philosopher) {
         for (int i =0 ; i < this.philosophers.length ; i++) {
-            if (this.philosophers[i].getName() == philosopher.getName()) {
-                releaseForks(philosopher);
+            if (this.philosophers[i].getPhilospherName() == philosopher.getPhilospherName()) {
                 philosopher.interrupt();
                 this.philosophers = removeElement(this.philosophers, i);
-            }
-        }
-    }
-
-    public void releaseForks(Philosopher philosopher) {
-        Object leftFork = philosopher.getLeftFork();  
-        Object rightFork = philosopher.getRightFork();
-        synchronized (leftFork) {
-            synchronized (rightFork) {
-                leftFork.notifyAll();  // Notify waiting threads on the left fork
-                rightFork.notifyAll(); // Notify waiting threads on the right fork
             }
         }
     }
@@ -55,13 +43,12 @@ public class Table {
     public void start() {
         
             System.out.println("Running table : "+ this.name);
-            Philosopher[] philosophers = new Philosopher[5];
+            Philosopher[] philosophers = new Philosopher[this.philosopherNames.length];
             Object[] forks = new Object[philosophers.length];
 
             for (int i = 0; i < forks.length; i++) {
                 forks[i] = new Object();
             }
-
            
             for (int i = 0; i < philosophers.length; i++) {
                 Object leftFork = forks[i];
@@ -73,7 +60,8 @@ public class Table {
                 Thread t = new Thread(philosophers[i]);
                 philosophers[i].setThreadId(t.getId());
                 t.start(); 
-            } 
+            }
+            //this.philosophers = philosophers; 
     }
 
     public Philosopher[] getPhilosophers() {
